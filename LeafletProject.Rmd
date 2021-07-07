@@ -1,0 +1,42 @@
+---
+title: "Map of Broadway Theaters"
+author: "Alicia Wooten"
+date: "7/6/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This map shows all Broadway theaters.  Each marker gives the theater name and a link to the current show's website.  This information was taken from <https://www.broadway.org/broadway-theatres> and google maps, then compiled into a database by hand.
+```{r theaters_map, echo=FALSE, warning=FALSE, message=FALSE}
+library(leaflet)
+library(dplyr)
+library(tidyr)
+
+#Load data
+BroadwayTheaters<-read.csv("BroadwayTheaters.csv")
+# seperate lat and long
+BroadwayTheaters<-separate(data = BroadwayTheaters, col = Address, into = c("lat", "lng"), sep = ",")
+# adjust structure of columns
+BroadwayTheaters$Theater<-as.character(BroadwayTheaters$Theater)
+BroadwayTheaters$lat<-as.numeric(BroadwayTheaters$lat)
+BroadwayTheaters$lng<-as.numeric(BroadwayTheaters$lng)
+BroadwayTheaters$Current.Show<-as.character(BroadwayTheaters$Current.Show)
+BroadwayTheaters$Link<-as.character(BroadwayTheaters$Link)
+# Create popup column
+BroadwayTheaters$popup<-paste0(BroadwayTheaters$Theater,"<br>","<a href ='",BroadwayTheaters$Link,"'>",
+                               BroadwayTheaters$Current.Show,"</a>")
+
+# Create Theater Icon
+TheaterIcon<- makeIcon(iconUrl = "https://www.pngarea.com/pngm/275/2263727_theatre-masks-png-guide-to-imperial-theatre-png.png",
+                       iconWidth = 15*215/230,
+                       iconHeight = 15,
+                       iconAnchorX = 15*215/230/2,
+                       iconAnchorY = 16)
+
+my_map<- BroadwayTheaters %>% leaflet() %>% addTiles() %>%
+  addMarkers(icon = TheaterIcon, popup = BroadwayTheaters$popup)
+my_map
+```
